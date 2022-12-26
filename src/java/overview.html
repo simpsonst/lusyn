@@ -1,0 +1,162 @@
+<body>
+
+  This software generates simple parsers in Java.
+
+  <p>
+    Define your node types in an enumeration type.
+
+    These include several kinds of nodes:
+  </p>
+
+  <ul>
+
+    <li>
+      <p>
+	Terminal nodes/tokens &mdash; These are annotated with a
+	single {@link uk.ac.lancs.syntax.Literal}, which specifies a
+	regular expression to match against.
+
+	If two tokens can match the same string, the earlier one in
+	the enumeration will match first, so put more specific tokens
+	first.
+      </p>
+
+      <p>
+	Pass your enumeration type to {@link
+	uk.ac.lancs.syntax.Lexicon#Lexicon(java.lang.Class)} to build
+	a lexical analyzer.
+      </p>
+    </li>
+
+    <li>
+      <p>
+	An epsilon token &mdash; Define exactly one by annotating with
+	{@link uk.ac.lancs.syntax.Epsilon}.
+
+	This will be the last token your lexical analyzer emits.
+      </p>
+    </li>
+
+    <li>
+      <p>
+	A wild-card token &mdash; Define exactly one by annotating with
+	{@link uk.ac.lancs.syntax.Unmatched}.
+
+	Your lexical analyzer emits this for any sequence it can't
+	match to any of the other tokens.
+      </p>
+    </li>
+
+    <li>
+      <p>
+	Non-terminals &mdash; These are annotated with {@link
+	uk.ac.lancs.syntax.Production} as many times as necessary to
+	indicate what they match.
+
+	The argument for the annotation is an array of strings, which
+	must match the Java names of fellow enumeration constants.
+      </p>
+
+      <p>
+	Pass your enumeration type to {@link
+	uk.ac.lancs.syntax.LL1Grammar#LL1Grammar(java.lang.Class)} to
+	create parsers for
+	an <a href="https://en.wikipedia.org/wiki/LL_grammar">LL(1)
+	grammar</a>.
+
+	LL(1) limits what kind of productions you can use.
+      </p>
+    </li>
+
+    <li>
+      <p>
+	Virtual nodes &mdash; These aren't annotated or processed by
+	the library in any special way, but rather by your
+	application.
+
+	Having processed an input according to an LL(1) grammar, you
+	might want to do some post-processing to deal with things
+	LL(1) can't cope with, like right-associativity.
+
+	You might also want to convert generic tokens like identifiers
+	into tokens for specific keywords.
+      </p>
+    </li>
+
+  </ul>
+
+  <p>
+    Basic usage is as follows:
+  </p>
+
+  <pre>
+enum MyNodeType { <var>...</var> }
+
+/* Create only once. */
+Lexicon&lt;MyNodeType&gt; lex = new Lexicon&lt;&gt;(MyNodeType.class);
+LL1Grammar&lt;MyNodeType&gt; syn = new LL1Grammar&lt;&gt;(MyNodeType.class);
+
+/* Create per parsing. */
+Parser&lt;MyNodeType&gt; par = syn.newParser(MyNodeType.ROOT);
+try (Reader in = <var>...</var>) {
+  lex.tokenize(in, par);
+}</pre>
+
+  <p>
+    <code>par</code> will then give you the results.
+
+    In particular, <code>par.root()</code> will give you the root of
+    your syntax tree, if successful.
+  </p>
+
+  <p>
+    {@link uk.ac.lancs.syntax.Parser} acts as a consumer of tokens.
+
+    If you want to pre-process them, create a {@link
+    java.util.function.Consumer} of tokens that also takes a {@link
+    java.util.function.Consumer} as its configuration, and pass the
+    parser to it:
+  </p>
+
+  <pre>
+lex.tokenize(in, new CommentEliminator(par));</pre>
+
+
+  <p>
+    If you include <samp>lusyn_aproc.jar</samp> in your annotation
+    processor class path, some errors will be detected at compile
+    time, specifically, regular expression syntax errors in {@link
+    uk.ac.lancs.syntax.Literal}, references to unknown node types in
+    {@link uk.ac.lancs.syntax.Production}, and application of any of
+    the annotations defined here to anything but enumeration
+    constants.
+  </p>
+
+
+  @title Lusyn Parser Tools
+
+  @shorttitle Lusyn
+
+  @see <a href="https://www.lancaster.ac.uk/~simpsons/software/pkg-lusyn">Software</a>
+
+  @pname simpsons Steven Simpson
+
+  @plink simpsons https://github.com/simpsonst
+
+  @paddr simpsons School of Computing and Communications, Lancaster
+  University
+
+  @pdesc simpsons
+
+  @aftmatter
+
+  <div class="feature copyright">
+    &copy; Lancaster University<br>
+
+    <a href="https://www.lancaster.ac.uk/compliance/legalnotice/">Copyright
+    &amp; Disclaimer</a>
+  </div>
+
+  @resume Simple parser generator
+
+</body>
